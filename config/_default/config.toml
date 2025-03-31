@@ -1,0 +1,22 @@
+# Change baseurl before deploy
+baseurl = "https://yuxiay.github.io"
+languageCode = "zh-CN"  
+title = "yuxiay的博客"
+
+# Theme i18n support
+# Available values: en, fr, id, ja, ko, pt-br, zh-cn, zh-tw, es, de, nl, it, th, el, uk, ar
+defaultContentLanguage = "zh-cn"
+
+# Set hasCJKLanguage to true if DefaultContentLanguage is in [zh-cn ja ko]
+# This will make .Summary and .WordCount behave correctly for CJK languages.
+hasCJKLanguage = true
+
+# Change it to your Disqus shortname before using
+disqusShortname = "hugo-theme-stack"
+
+# 设置日期格式
+[params]
+dateFormat = "2006年01月02日"
+
+[pagination]
+pagerSize = 10
