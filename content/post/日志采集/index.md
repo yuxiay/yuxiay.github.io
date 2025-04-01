@@ -1,5 +1,5 @@
 ---
-title: "日志采集"
+title: "kafka+ELK日志采集"
 description: 
 date: 2025-03-12T19:09:16+08:00
 image: 

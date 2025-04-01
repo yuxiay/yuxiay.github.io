@@ -8,8 +8,8 @@ license:
 hidden: false
 comments: true
 draft: false
-tags:   
-     - minio
+tags:
+  - minio
 categories:
 ---
 
