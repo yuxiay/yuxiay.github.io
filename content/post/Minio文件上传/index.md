@@ -9,7 +9,7 @@ hidden: false
 comments: true
 draft: false
 tags:   
-  -minio
+     - minio
 categories:
 ---
 
