@@ -1,5 +1,5 @@
 ---
-title: "golang内存逃逸"
+title: "go内存逃逸"
 description: 
 date: 2025-03-23T23:25:36+08:00
 image: 
@@ -9,9 +9,9 @@ hidden: false
 comments: true
 draft: false
 tags:   
-     - golang八股面经
+     - Golang八股面经
 categories:
-     - golang八股面经
+     - Golang八股面经
 ---
 
 ## go内存分配与逃逸分析

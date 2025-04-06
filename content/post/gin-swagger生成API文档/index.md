@@ -1,5 +1,5 @@
 ---
-title: "gin-swagger实战"
+title: "gin-swagger库"
 description: 
 date: 2024-10-13T22:30:21+08:00
 image: 
@@ -14,7 +14,7 @@ categories:
       - go
 ---
 
-## gin-swagger实战
+## gin-swagger库
 
 步骤：
 
