@@ -1,0 +1,448 @@
+<!doctype html><html lang=zh-CN dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content="etcd原理与应用 etcd 是一款分布式存储中间件，使用Go语言编写并通过Raft一致性算法处理和确保分布式一致性，解决了分布式系统中数据一致性的问题\ngo 语言etcd基本操作 c } l E ) i n e , d t c e d r 连 r 接 : = c l i e n t v 3 . N e w ( c l i e n t v 3 . C o n f i g { 服务注册和服务发现的具体实现 基本逻辑：服务注册者向etcdzhuce服务，客户端查询监听etcd，从而客户端访问服务\n"><title>etcd原理与应用</title>
+<link rel=canonical href=https://yuxiay.github.io/p/etcd%E5%8E%9F%E7%90%86%E4%B8%8E%E5%BA%94%E7%94%A8/><link rel=stylesheet href=/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css><meta property='og:title' content="etcd原理与应用"><meta property='og:description' content="etcd原理与应用 etcd 是一款分布式存储中间件，使用Go语言编写并通过Raft一致性算法处理和确保分布式一致性，解决了分布式系统中数据一致性的问题\ngo 语言etcd基本操作 c } l E ) i n e , d t c e d r 连 r 接 : = c l i e n t v 3 . N e w ( c l i e n t v 3 . C o n f i g { 服务注册和服务发现的具体实现 基本逻辑：服务注册者向etcdzhuce服务，客户端查询监听etcd，从而客户端访问服务\n"><meta property='og:url' content='https://yuxiay.github.io/p/etcd%E5%8E%9F%E7%90%86%E4%B8%8E%E5%BA%94%E7%94%A8/'><meta property='og:site_name' content='yuxiay的博客'><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='go'><meta property='article:tag' content='etcd'><meta property='article:published_time' content='2025-02-13T21:32:56+08:00'><meta property='article:modified_time' content='2025-02-13T21:32:56+08:00'><meta name=twitter:title content="etcd原理与应用"><meta name=twitter:description content="etcd原理与应用 etcd 是一款分布式存储中间件，使用Go语言编写并通过Raft一致性算法处理和确保分布式一致性，解决了分布式系统中数据一致性的问题\ngo 语言etcd基本操作 c } l E ) i n e , d t c e d r 连 r 接 : = c l i e n t v 3 . N e w ( c l i e n t v 3 . C o n f i g { 服务注册和服务发现的具体实现 基本逻辑：服务注册者向etcdzhuce服务，客户端查询监听etcd，从而客户端访问服务\n"><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_hu_b33ac33d040797db.png width=300 height=300 class=site-logo loading=lazy alt=Avatar>
+</a><span class=emoji>🍥</span></figure><div class=site-meta><h1 class=site-name><a href=/>yuxiay的博客</a></h1><h2 class=site-description>偷得浮生半日闲</h2></div></header><ol class=menu-social><li><a href=https://github.com target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://twitter.com target=_blank title=Twitter rel=me><svg class="icon icon-tabler icon-tabler-brand-twitter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84.0 00.497-3.753C20.18 7.773 21.692 5.25 22 4.009z"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><a href=#etcd原理与应用>etcd原理与应用</a><ol><li><a href=#go-语言etcd基本操作>go 语言etcd基本操作</a></li><li><a href=#服务注册和服务发现的具体实现>服务注册和服务发现的具体实现</a></li></ol></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/go/>Go</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/etcd%E5%8E%9F%E7%90%86%E4%B8%8E%E5%BA%94%E7%94%A8/>etcd原理与应用</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Feb 13, 2025</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>阅读时长: 3 分钟</time></div></footer></div></header><section class=article-content><h2 id=etcd原理与应用>etcd原理与应用</h2><p>etcd 是一款分布式存储中间件，使用Go语言编写并通过Raft一致性算法处理和确保分布式一致性，解决了分布式系统中数据一致性的问题</p><h3 id=go-语言etcd基本操作>go 语言etcd基本操作</h3><div class="goat svg-container"><svg font-family="Menlo,Lucida Console,monospace" viewBox="0 0 336 73"><g transform="translate(8,16)"><path d="M-4 8V24" fill="none" stroke="currentcolor"/><path d="M4 8-4 40" fill="none" stroke="currentcolor"/><text text-anchor="middle" x="0" y="20" fill="currentcolor" style="font-size:1em">c</text><text text-anchor="middle" x="0" y="36" fill="currentcolor" style="font-size:1em"/><text text-anchor="middle" x="0" y="52" fill="currentcolor" style="font-size:1em">}</text><text text-anchor="middle" x="8" y="20" fill="currentcolor" style="font-size:1em">l</text><text text-anchor="middle" x="8" y="36" fill="currentcolor" style="font-size:1em">E</text><text text-anchor="middle" x="8" y="52" fill="currentcolor" style="font-size:1em">)</text><text text-anchor="middle" x="16" y="20" fill="currentcolor" style="font-size:1em">i</text><text text-anchor="middle" x="16" y="36" fill="currentcolor" style="font-size:1em">n</text><text text-anchor="middle" x="24" y="4" fill="currentcolor" style="font-size:1em">e</text><text text-anchor="middle" x="24" y="20" fill="currentcolor" style="font-size:1em">,</text><text text-anchor="middle" x="24" y="36" fill="currentcolor" style="font-size:1em">d</text><text text-anchor="middle" x="32" y="4" fill="currentcolor" style="font-size:1em">t</text><text text-anchor="middle" x="40" y="4" fill="currentcolor" style="font-size:1em">c</text><text text-anchor="middle" x="40" y="20" fill="currentcolor" style="font-size:1em">e</text><text text-anchor="middle" x="48" y="4" fill="currentcolor" style="font-size:1em">d</text><text text-anchor="middle" x="48" y="20" fill="currentcolor" style="font-size:1em">r</text><text text-anchor="middle" x="56" y="4" fill="currentcolor" style="font-size:1em">连</text><text text-anchor="middle" x="56" y="20" fill="currentcolor" style="font-size:1em">r</text><text text-anchor="middle" x="64" y="4" fill="currentcolor" style="font-size:1em">接</text><text text-anchor="middle" x="72" y="20" fill="currentcolor" style="font-size:1em">:</text><text text-anchor="middle" x="80" y="20" fill="currentcolor" style="font-size:1em">=</text><text text-anchor="middle" x="96" y="20" fill="currentcolor" style="font-size:1em">c</text><text text-anchor="middle" x="104" y="20" fill="currentcolor" style="font-size:1em">l</text><text text-anchor="middle" x="112" y="20" fill="currentcolor" style="font-size:1em">i</text><text text-anchor="middle" x="120" y="20" fill="currentcolor" style="font-size:1em">e</text><text text-anchor="middle" x="128" y="20" fill="currentcolor" style="font-size:1em">n</text><text text-anchor="middle" x="136" y="20" fill="currentcolor" style="font-size:1em">t</text><text text-anchor="middle" x="144" y="20" fill="currentcolor" style="font-size:1em">v</text><text text-anchor="middle" x="152" y="20" fill="currentcolor" style="font-size:1em">3</text><text text-anchor="middle" x="160" y="20" fill="currentcolor" style="font-size:1em">.</text><text text-anchor="middle" x="168" y="20" fill="currentcolor" style="font-size:1em">N</text><text text-anchor="middle" x="176" y="20" fill="currentcolor" style="font-size:1em">e</text><text text-anchor="middle" x="184" y="20" fill="currentcolor" style="font-size:1em">w</text><text text-anchor="middle" x="192" y="20" fill="currentcolor" style="font-size:1em">(</text><text text-anchor="middle" x="200" y="20" fill="currentcolor" style="font-size:1em">c</text><text text-anchor="middle" x="208" y="20" fill="currentcolor" style="font-size:1em">l</text><text text-anchor="middle" x="216" y="20" fill="currentcolor" style="font-size:1em">i</text><text text-anchor="middle" x="224" y="20" fill="currentcolor" style="font-size:1em">e</text><text text-anchor="middle" x="232" y="20" fill="currentcolor" style="font-size:1em">n</text><text text-anchor="middle" x="240" y="20" fill="currentcolor" style="font-size:1em">t</text><text text-anchor="middle" x="248" y="20" fill="currentcolor" style="font-size:1em">v</text><text text-anchor="middle" x="256" y="20" fill="currentcolor" style="font-size:1em">3</text><text text-anchor="middle" x="264" y="20" fill="currentcolor" style="font-size:1em">.</text><text text-anchor="middle" x="272" y="20" fill="currentcolor" style="font-size:1em">C</text><text text-anchor="middle" x="280" y="20" fill="currentcolor" style="font-size:1em">o</text><text text-anchor="middle" x="288" y="20" fill="currentcolor" style="font-size:1em">n</text><text text-anchor="middle" x="296" y="20" fill="currentcolor" style="font-size:1em">f</text><text text-anchor="middle" x="304" y="20" fill="currentcolor" style="font-size:1em">i</text><text text-anchor="middle" x="312" y="20" fill="currentcolor" style="font-size:1em">g</text><text text-anchor="middle" x="320" y="20" fill="currentcolor" style="font-size:1em">{</text></g></svg></div><h3 id=服务注册和服务发现的具体实现>服务注册和服务发现的具体实现</h3><p>基本逻辑：服务注册者向etcdzhuce服务，客户端查询监听etcd，从而客户端访问服务</p><p>服务端：</p><ul><li>启动服务</li><li>向etcd注册服务</li><li>声明租约并续约</li></ul><p>客户端：</p><ul><li>第一次获取服务信息</li><li>创建监听，被动接受服务信息</li><li>更新本地服务信息</li></ul><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;time&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;go.etcd.io/etcd/clientv3&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//ServiceRegister 创建租约注册服务</span>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ServiceRegister</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cli</span>     <span class=o>*</span><span class=nx>clientv3</span><span class=p>.</span><span class=nx>Client</span> <span class=c1>//etcd client</span>
+</span></span><span class=line><span class=cl>	<span class=nx>leaseID</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nx>LeaseID</span> <span class=c1>//租约ID</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//租约keepalieve相应chan</span>
+</span></span><span class=line><span class=cl>	<span class=nx>keepAliveChan</span> <span class=o>&lt;-</span><span class=kd>chan</span> <span class=o>*</span><span class=nx>clientv3</span><span class=p>.</span><span class=nx>LeaseKeepAliveResponse</span>
+</span></span><span class=line><span class=cl>	<span class=nx>key</span>           <span class=kt>string</span> <span class=c1>//key</span>
+</span></span><span class=line><span class=cl>	<span class=nx>val</span>           <span class=kt>string</span> <span class=c1>//value</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//NewServiceRegister 新建注册服务</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>NewServiceRegister</span><span class=p>(</span><span class=nx>endpoints</span> <span class=p>[]</span><span class=kt>string</span><span class=p>,</span> <span class=nx>key</span><span class=p>,</span> <span class=nx>val</span> <span class=kt>string</span><span class=p>,</span> <span class=nx>lease</span> <span class=kt>int64</span><span class=p>)</span> <span class=p>(</span><span class=o>*</span><span class=nx>ServiceRegister</span><span class=p>,</span> <span class=kt>error</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cli</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>clientv3</span><span class=p>.</span><span class=nx>Config</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Endpoints</span><span class=p>:</span>   <span class=nx>endpoints</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DialTimeout</span><span class=p>:</span> <span class=mi>5</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=nx>ser</span> <span class=o>:=</span> <span class=o>&amp;</span><span class=nx>ServiceRegister</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>cli</span><span class=p>:</span> <span class=nx>cli</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>key</span><span class=p>:</span> <span class=nx>key</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>val</span><span class=p>:</span> <span class=nx>val</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>//申请租约设置时间keepalive</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>ser</span><span class=p>.</span><span class=nf>putKeyWithLease</span><span class=p>(</span><span class=nx>lease</span><span class=p>);</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=kc>nil</span><span class=p>,</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>ser</span><span class=p>,</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//设置租约</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceRegister</span><span class=p>)</span> <span class=nf>putKeyWithLease</span><span class=p>(</span><span class=nx>lease</span> <span class=kt>int64</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//设置租约时间</span>
+</span></span><span class=line><span class=cl>	<span class=nx>resp</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Grant</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>lease</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//注册服务并绑定租约</span>
+</span></span><span class=line><span class=cl>	<span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=p>=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Put</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>s</span><span class=p>.</span><span class=nx>key</span><span class=p>,</span> <span class=nx>s</span><span class=p>.</span><span class=nx>val</span><span class=p>,</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nf>WithLease</span><span class=p>(</span><span class=nx>resp</span><span class=p>.</span><span class=nx>ID</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//设置续租 定期发送需求请求</span>
+</span></span><span class=line><span class=cl>	<span class=nx>leaseRespChan</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>KeepAlive</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>ID</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>leaseID</span> <span class=p>=</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>ID</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>s</span><span class=p>.</span><span class=nx>leaseID</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>keepAliveChan</span> <span class=p>=</span> <span class=nx>leaseRespChan</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;Put key:%s  val:%s  success!&#34;</span><span class=p>,</span> <span class=nx>s</span><span class=p>.</span><span class=nx>key</span><span class=p>,</span> <span class=nx>s</span><span class=p>.</span><span class=nx>val</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//ListenLeaseRespChan 监听 续租情况</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceRegister</span><span class=p>)</span> <span class=nf>ListenLeaseRespChan</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>leaseKeepResp</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>s</span><span class=p>.</span><span class=nx>keepAliveChan</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;续约成功&#34;</span><span class=p>,</span> <span class=nx>leaseKeepResp</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;关闭续租&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// Close 注销服务</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceRegister</span><span class=p>)</span> <span class=nf>Close</span><span class=p>()</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//撤销租约</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Revoke</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>s</span><span class=p>.</span><span class=nx>leaseID</span><span class=p>);</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;撤销租约&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Close</span><span class=p>()</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=kd>var</span> <span class=nx>endpoints</span> <span class=p>=</span> <span class=p>[]</span><span class=kt>string</span><span class=p>{</span><span class=s>&#34;localhost:2379&#34;</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ser</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nf>NewServiceRegister</span><span class=p>(</span><span class=nx>endpoints</span><span class=p>,</span> <span class=s>&#34;/web/node1&#34;</span><span class=p>,</span> <span class=s>&#34;localhost:8000&#34;</span><span class=p>,</span> <span class=mi>5</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatalln</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//监听续租相应chan</span>
+</span></span><span class=line><span class=cl>	<span class=k>go</span> <span class=nx>ser</span><span class=p>.</span><span class=nf>ListenLeaseRespChan</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>select</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// case &lt;-time.After(20 * time.Second):</span>
+</span></span><span class=line><span class=cl>	<span class=c1>// 	ser.Close()</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>  1
+</span><span class=lnt>  2
+</span><span class=lnt>  3
+</span><span class=lnt>  4
+</span><span class=lnt>  5
+</span><span class=lnt>  6
+</span><span class=lnt>  7
+</span><span class=lnt>  8
+</span><span class=lnt>  9
+</span><span class=lnt> 10
+</span><span class=lnt> 11
+</span><span class=lnt> 12
+</span><span class=lnt> 13
+</span><span class=lnt> 14
+</span><span class=lnt> 15
+</span><span class=lnt> 16
+</span><span class=lnt> 17
+</span><span class=lnt> 18
+</span><span class=lnt> 19
+</span><span class=lnt> 20
+</span><span class=lnt> 21
+</span><span class=lnt> 22
+</span><span class=lnt> 23
+</span><span class=lnt> 24
+</span><span class=lnt> 25
+</span><span class=lnt> 26
+</span><span class=lnt> 27
+</span><span class=lnt> 28
+</span><span class=lnt> 29
+</span><span class=lnt> 30
+</span><span class=lnt> 31
+</span><span class=lnt> 32
+</span><span class=lnt> 33
+</span><span class=lnt> 34
+</span><span class=lnt> 35
+</span><span class=lnt> 36
+</span><span class=lnt> 37
+</span><span class=lnt> 38
+</span><span class=lnt> 39
+</span><span class=lnt> 40
+</span><span class=lnt> 41
+</span><span class=lnt> 42
+</span><span class=lnt> 43
+</span><span class=lnt> 44
+</span><span class=lnt> 45
+</span><span class=lnt> 46
+</span><span class=lnt> 47
+</span><span class=lnt> 48
+</span><span class=lnt> 49
+</span><span class=lnt> 50
+</span><span class=lnt> 51
+</span><span class=lnt> 52
+</span><span class=lnt> 53
+</span><span class=lnt> 54
+</span><span class=lnt> 55
+</span><span class=lnt> 56
+</span><span class=lnt> 57
+</span><span class=lnt> 58
+</span><span class=lnt> 59
+</span><span class=lnt> 60
+</span><span class=lnt> 61
+</span><span class=lnt> 62
+</span><span class=lnt> 63
+</span><span class=lnt> 64
+</span><span class=lnt> 65
+</span><span class=lnt> 66
+</span><span class=lnt> 67
+</span><span class=lnt> 68
+</span><span class=lnt> 69
+</span><span class=lnt> 70
+</span><span class=lnt> 71
+</span><span class=lnt> 72
+</span><span class=lnt> 73
+</span><span class=lnt> 74
+</span><span class=lnt> 75
+</span><span class=lnt> 76
+</span><span class=lnt> 77
+</span><span class=lnt> 78
+</span><span class=lnt> 79
+</span><span class=lnt> 80
+</span><span class=lnt> 81
+</span><span class=lnt> 82
+</span><span class=lnt> 83
+</span><span class=lnt> 84
+</span><span class=lnt> 85
+</span><span class=lnt> 86
+</span><span class=lnt> 87
+</span><span class=lnt> 88
+</span><span class=lnt> 89
+</span><span class=lnt> 90
+</span><span class=lnt> 91
+</span><span class=lnt> 92
+</span><span class=lnt> 93
+</span><span class=lnt> 94
+</span><span class=lnt> 95
+</span><span class=lnt> 96
+</span><span class=lnt> 97
+</span><span class=lnt> 98
+</span><span class=lnt> 99
+</span><span class=lnt>100
+</span><span class=lnt>101
+</span><span class=lnt>102
+</span><span class=lnt>103
+</span><span class=lnt>104
+</span><span class=lnt>105
+</span><span class=lnt>106
+</span><span class=lnt>107
+</span><span class=lnt>108
+</span><span class=lnt>109
+</span><span class=lnt>110
+</span><span class=lnt>111
+</span><span class=lnt>112
+</span><span class=lnt>113
+</span><span class=lnt>114
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-go data-lang=go><span class=line><span class=cl><span class=kn>package</span> <span class=nx>main</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kn>import</span> <span class=p>(</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;context&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;log&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;sync&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;time&#34;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;github.com/coreos/etcd/mvcc/mvccpb&#34;</span>
+</span></span><span class=line><span class=cl>	<span class=s>&#34;go.etcd.io/etcd/clientv3&#34;</span>
+</span></span><span class=line><span class=cl><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//ServiceDiscovery 服务发现</span>
+</span></span><span class=line><span class=cl><span class=kd>type</span> <span class=nx>ServiceDiscovery</span> <span class=kd>struct</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cli</span>        <span class=o>*</span><span class=nx>clientv3</span><span class=p>.</span><span class=nx>Client</span>  <span class=c1>//etcd client</span>
+</span></span><span class=line><span class=cl>	<span class=nx>serverList</span> <span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>string</span> <span class=c1>//服务列表</span>
+</span></span><span class=line><span class=cl>	<span class=nx>lock</span>       <span class=nx>sync</span><span class=p>.</span><span class=nx>Mutex</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//NewServiceDiscovery  新建发现服务</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>NewServiceDiscovery</span><span class=p>(</span><span class=nx>endpoints</span> <span class=p>[]</span><span class=kt>string</span><span class=p>)</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>cli</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nf>New</span><span class=p>(</span><span class=nx>clientv3</span><span class=p>.</span><span class=nx>Config</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>Endpoints</span><span class=p>:</span>   <span class=nx>endpoints</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>DialTimeout</span><span class=p>:</span> <span class=mi>5</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>	<span class=p>})</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>log</span><span class=p>.</span><span class=nf>Fatal</span><span class=p>(</span><span class=nx>err</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=o>&amp;</span><span class=nx>ServiceDiscovery</span><span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>cli</span><span class=p>:</span>        <span class=nx>cli</span><span class=p>,</span>
+</span></span><span class=line><span class=cl>		<span class=nx>serverList</span><span class=p>:</span> <span class=nb>make</span><span class=p>(</span><span class=kd>map</span><span class=p>[</span><span class=kt>string</span><span class=p>]</span><span class=kt>string</span><span class=p>),</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//WatchService 初始化服务列表和监视</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>WatchService</span><span class=p>(</span><span class=nx>prefix</span> <span class=kt>string</span><span class=p>)</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=c1>//根据前缀获取现有的key</span>
+</span></span><span class=line><span class=cl>	<span class=nx>resp</span><span class=p>,</span> <span class=nx>err</span> <span class=o>:=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Get</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>prefix</span><span class=p>,</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nf>WithPrefix</span><span class=p>())</span>
+</span></span><span class=line><span class=cl>	<span class=k>if</span> <span class=nx>err</span> <span class=o>!=</span> <span class=kc>nil</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>return</span> <span class=nx>err</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>ev</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>resp</span><span class=p>.</span><span class=nx>Kvs</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>s</span><span class=p>.</span><span class=nf>SetServiceList</span><span class=p>(</span><span class=nb>string</span><span class=p>(</span><span class=nx>ev</span><span class=p>.</span><span class=nx>Key</span><span class=p>),</span> <span class=nb>string</span><span class=p>(</span><span class=nx>ev</span><span class=p>.</span><span class=nx>Value</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=c1>//监视前缀，修改变更的server</span>
+</span></span><span class=line><span class=cl>	<span class=k>go</span> <span class=nx>s</span><span class=p>.</span><span class=nf>watcher</span><span class=p>(</span><span class=nx>prefix</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=kc>nil</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//watcher 监听前缀</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>watcher</span><span class=p>(</span><span class=nx>prefix</span> <span class=kt>string</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>rch</span> <span class=o>:=</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Watch</span><span class=p>(</span><span class=nx>context</span><span class=p>.</span><span class=nf>Background</span><span class=p>(),</span> <span class=nx>prefix</span><span class=p>,</span> <span class=nx>clientv3</span><span class=p>.</span><span class=nf>WithPrefix</span><span class=p>())</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Printf</span><span class=p>(</span><span class=s>&#34;watching prefix:%s now...&#34;</span><span class=p>,</span> <span class=nx>prefix</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>wresp</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>rch</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>ev</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>wresp</span><span class=p>.</span><span class=nx>Events</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=k>switch</span> <span class=nx>ev</span><span class=p>.</span><span class=nx>Type</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>			<span class=k>case</span> <span class=nx>mvccpb</span><span class=p>.</span><span class=nx>PUT</span><span class=p>:</span> <span class=c1>//修改或者新增</span>
+</span></span><span class=line><span class=cl>				<span class=nx>s</span><span class=p>.</span><span class=nf>SetServiceList</span><span class=p>(</span><span class=nb>string</span><span class=p>(</span><span class=nx>ev</span><span class=p>.</span><span class=nx>Kv</span><span class=p>.</span><span class=nx>Key</span><span class=p>),</span> <span class=nb>string</span><span class=p>(</span><span class=nx>ev</span><span class=p>.</span><span class=nx>Kv</span><span class=p>.</span><span class=nx>Value</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>			<span class=k>case</span> <span class=nx>mvccpb</span><span class=p>.</span><span class=nx>DELETE</span><span class=p>:</span> <span class=c1>//删除</span>
+</span></span><span class=line><span class=cl>				<span class=nx>s</span><span class=p>.</span><span class=nf>DelServiceList</span><span class=p>(</span><span class=nb>string</span><span class=p>(</span><span class=nx>ev</span><span class=p>.</span><span class=nx>Kv</span><span class=p>.</span><span class=nx>Key</span><span class=p>))</span>
+</span></span><span class=line><span class=cl>			<span class=p>}</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//SetServiceList 新增服务地址</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>SetServiceList</span><span class=p>(</span><span class=nx>key</span><span class=p>,</span> <span class=nx>val</span> <span class=kt>string</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Lock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>defer</span> <span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Unlock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>serverList</span><span class=p>[</span><span class=nx>key</span><span class=p>]</span> <span class=p>=</span> <span class=nb>string</span><span class=p>(</span><span class=nx>val</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;put key :&#34;</span><span class=p>,</span> <span class=nx>key</span><span class=p>,</span> <span class=s>&#34;val:&#34;</span><span class=p>,</span> <span class=nx>val</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//DelServiceList 删除服务地址</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>DelServiceList</span><span class=p>(</span><span class=nx>key</span> <span class=kt>string</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Lock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>defer</span> <span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Unlock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=nb>delete</span><span class=p>(</span><span class=nx>s</span><span class=p>.</span><span class=nx>serverList</span><span class=p>,</span> <span class=nx>key</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=s>&#34;del key:&#34;</span><span class=p>,</span> <span class=nx>key</span><span class=p>)</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//GetServices 获取服务地址</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>GetServices</span><span class=p>()</span> <span class=p>[]</span><span class=kt>string</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Lock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=k>defer</span> <span class=nx>s</span><span class=p>.</span><span class=nx>lock</span><span class=p>.</span><span class=nf>Unlock</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=nx>addrs</span> <span class=o>:=</span> <span class=nb>make</span><span class=p>([]</span><span class=kt>string</span><span class=p>,</span> <span class=mi>0</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=nx>_</span><span class=p>,</span> <span class=nx>v</span> <span class=o>:=</span> <span class=k>range</span> <span class=nx>s</span><span class=p>.</span><span class=nx>serverList</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=nx>addrs</span> <span class=p>=</span> <span class=nb>append</span><span class=p>(</span><span class=nx>addrs</span><span class=p>,</span> <span class=nx>v</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>addrs</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>//Close 关闭服务</span>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=p>(</span><span class=nx>s</span> <span class=o>*</span><span class=nx>ServiceDiscovery</span><span class=p>)</span> <span class=nf>Close</span><span class=p>()</span> <span class=kt>error</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=k>return</span> <span class=nx>s</span><span class=p>.</span><span class=nx>cli</span><span class=p>.</span><span class=nf>Close</span><span class=p>()</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=kd>func</span> <span class=nf>main</span><span class=p>()</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>	<span class=kd>var</span> <span class=nx>endpoints</span> <span class=p>=</span> <span class=p>[]</span><span class=kt>string</span><span class=p>{</span><span class=s>&#34;localhost:2379&#34;</span><span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ser</span> <span class=o>:=</span> <span class=nf>NewServiceDiscovery</span><span class=p>(</span><span class=nx>endpoints</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>defer</span> <span class=nx>ser</span><span class=p>.</span><span class=nf>Close</span><span class=p>()</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ser</span><span class=p>.</span><span class=nf>WatchService</span><span class=p>(</span><span class=s>&#34;/web/&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=nx>ser</span><span class=p>.</span><span class=nf>WatchService</span><span class=p>(</span><span class=s>&#34;/gRPC/&#34;</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>	<span class=k>for</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>select</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>		<span class=k>case</span> <span class=o>&lt;-</span><span class=nx>time</span><span class=p>.</span><span class=nf>Tick</span><span class=p>(</span><span class=mi>10</span> <span class=o>*</span> <span class=nx>time</span><span class=p>.</span><span class=nx>Second</span><span class=p>):</span>
+</span></span><span class=line><span class=cl>			<span class=nx>log</span><span class=p>.</span><span class=nf>Println</span><span class=p>(</span><span class=nx>ser</span><span class=p>.</span><span class=nf>GetServices</span><span class=p>())</span>
+</span></span><span class=line><span class=cl>		<span class=p>}</span>
+</span></span><span class=line><span class=cl>	<span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span></code></pre></td></tr></table></div></div></section><footer class=article-footer><section class=article-tags><a href=/tags/go/>Go</a>
+<a href=/tags/etcd/>Etcd</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/p/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%90%86%E8%A7%A3rpc/><div class=article-details><h2 class=article-title>从0开始理解rpc</h2></div></a></article><article><a href=/p/gin-swagger%E5%BA%93/><div class=article-details><h2 class=article-title>gin-swagger库</h2></div></a></article><article><a href=/p/validator%E5%8F%82%E6%95%B0%E6%A3%80%E9%AA%8C/><div class=article-details><h2 class=article-title>validator参数检验</h2></div></a></article><article><a href=/p/zap%E6%97%A5%E5%BF%97%E5%BA%93/><div class=article-details><h2 class=article-title>zap日志库</h2></div></a></article><article><a href=/p/go%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/><div class=article-details><h2 class=article-title>go并发编程</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//hugo-theme-stack.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2025 yuxiay的博客</section><section class=powerby>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.30.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计</section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>

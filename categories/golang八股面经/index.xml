@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Golang八股面经 on yuxiay的博客</title><link>https://yuxiay.github.io/categories/golang%E5%85%AB%E8%82%A1%E9%9D%A2%E7%BB%8F/</link><description>Recent content in Golang八股面经 on yuxiay的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Sun, 06 Apr 2025 23:25:36 +0800</lastBuildDate><atom:link href="https://yuxiay.github.io/categories/golang%E5%85%AB%E8%82%A1%E9%9D%A2%E7%BB%8F/index.xml" rel="self" type="application/rss+xml"/><item><title>go面经整理1</title><link>https://yuxiay.github.io/p/go%E9%9D%A2%E7%BB%8F%E6%95%B4%E7%90%861/</link><pubDate>Sun, 06 Apr 2025 23:25:36 +0800</pubDate><guid>https://yuxiay.github.io/p/go%E9%9D%A2%E7%BB%8F%E6%95%B4%E7%90%861/</guid><description>&lt;h2 id="go后端面经">go后端面经
+&lt;/h2>&lt;h3 id="go语言">go语言
+&lt;/h3>&lt;h4 id="make-和-new有什么区别">make 和 new有什么区别
+&lt;/h4>&lt;p>make是声明一块内存，而new是指向该内存的指针，make只能用来创建切片，通道等类型，但new 没有类型限制&lt;/p>
+&lt;h4 id="defer的执行时机">defer的执行时机
+&lt;/h4>&lt;p>后进先出，栈结构&lt;/p>
+&lt;h4 id="defer-常见的用法">defer 常见的用法
+&lt;/h4>&lt;p>错误恢复，资源释放，记录执行时间&lt;/p>
+&lt;h4 id="panic-怎么处理">panic 怎么处理
+&lt;/h4>&lt;p>可以用defer进行回滚&lt;/p>
+&lt;h4 id="协程发生阻塞的情况有哪些">协程发生阻塞的情况有哪些？
+&lt;/h4>&lt;p>channel阻塞， 同步IO操作，同步锁，死锁&lt;/p>
+&lt;h4 id="channel满了-消费者和生产者会怎么样-对值为nil的channel读取会发生什么">channel满了 消费者和生产者会怎么样。 对值为nil的channel读取会发生什么？
+&lt;/h4>&lt;ol>
+&lt;li>当channel满时，生产者的发送操作会被阻塞，直到有空间可用。&lt;/li>
+&lt;li>消费者在channel为空时会被阻塞，直到有数据发送。&lt;/li>
+&lt;li>对nil的channel进行读写操作会导致永久阻塞，引发死锁。&lt;/li>
+&lt;li>解决方法包括使用带缓冲的channel、正确初始化channel、使用select超时或context取消等&lt;/li>
+&lt;/ol>
+&lt;h4 id="map的底层结构是什么样的">map的底层结构是什么样的
+&lt;/h4>&lt;p>Golang的map就是使用哈希表作为底层实现，&lt;strong>map 实际上就是一个指针，指向hmap结构体&lt;/strong>。&lt;/p>
+&lt;h4 id="map是并发安全的吗-syncmap">map是并发安全的吗？ sync.Map
+&lt;/h4>&lt;p>map不是并发安全，但sync.Map是并发安全&lt;/p>
+&lt;h4 id="map的遍历是有序的还是无需的-如果需要实现有序的遍历如何做不知道这个有啥意义">map的遍历是有序的还是无需的？ 如果需要实现有序的遍历如何做（不知道这个有啥意义）
+&lt;/h4>&lt;p>map的遍历是无序的，如果需要实现有序遍历，可以放入切片中&lt;/p>
+&lt;h4 id="gmp是什么介绍一下m和p的数量是怎么指定的">GMP是什么？介绍一下。M和P的数量是怎么指定的
+&lt;/h4>&lt;p>GMP是go的一种调度机制，G指的是gorountine，M指的是内核线程，P指的是处理器，M的数量是go语言有个默认的最大数量，P是通过环境变量进行指定，都有一个函数进行指定&lt;/p>
+&lt;h4 id="协程什么情况下会退出">协程什么情况下会退出
+&lt;/h4>&lt;p>自然执行完毕，发生panic未恢复，主动退出，通道关闭或阻塞，上下文取消，父协程退出&lt;/p>
+&lt;h4 id="如何实现协程池">如何实现协程池
+&lt;/h4>&lt;p>结构体中包含：一个通道，一个等待，一个协程的数量&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-go" data-lang="go">&lt;span class="line">&lt;span class="cl">&lt;span class="kd">type&lt;/span> &lt;span class="nx">Pool&lt;/span> &lt;span class="kd">struct&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">taskQueue&lt;/span> &lt;span class="kd">chan&lt;/span> &lt;span class="nx">Task&lt;/span> &lt;span class="c1">// 任务队列&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">workerNum&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="c1">// 协程数量&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">wg&lt;/span> &lt;span class="nx">sync&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">WaitGroup&lt;/span> &lt;span class="c1">// 等待所有协程完成&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">ctx&lt;/span> &lt;span class="nx">context&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">Context&lt;/span> &lt;span class="c1">// 控制上下文&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nx">cancel&lt;/span> &lt;span class="nx">context&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="nx">CancelFunc&lt;/span> &lt;span class="c1">// 取消函数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="gc是什么-什么时候会发生gc">GC是什么？ 什么时候会发生GC
+&lt;/h4>&lt;p>GC是垃圾回收，定期触发，手动触发，空间不足时，根对象失效时&lt;/p>
+&lt;h4 id="讲讲数组和切片的区别什么时候用数组什么时候用切片">讲讲数组和切片的区别什么时候用数组什么时候用切片
+&lt;/h4>&lt;ul>
+&lt;li>数组是值传递，切片是引用传递&lt;/li>
+&lt;li>数组是固定长度，切片是动态长度可以扩容&lt;/li>
+&lt;li>固定长度时用数组，其余时候用切片&lt;/li>
+&lt;/ul>
+&lt;h4 id="讲讲defer-执行顺序-注意事项">讲讲defer 执行顺序 注意事项
+&lt;/h4>&lt;p>循环中的defer可能导致资源泄露，因为它们会延迟到函数结束时才执行。另外，defer与闭包结合使用时可能出现意外的结果，特别是在循环中。还有性能问题，虽然defer本身开销不大，但在高频调用的函数中滥用可能会影响性能。&lt;/p>
+&lt;h4 id="讲讲channel和goroutine-底层使用">讲讲channel和goroutine 底层、使用
+&lt;/h4>&lt;p>channel底层是队列结构，可以与协程进行生产者和消费者这个模式&lt;/p>
+&lt;h4 id="什么时候channel会发生panic">什么时候channel会发生panic
+&lt;/h4>&lt;ul>
+&lt;li>向已经关闭的channel发送数据&lt;/li>
+&lt;li>关闭已经关闭的channel&lt;/li>
+&lt;li>向未初始化的channel发送或接受数据&lt;/li>
+&lt;li>关闭未初始化的channel&lt;/li>
+&lt;/ul>
+&lt;h3 id="redis">Redis
+&lt;/h3>&lt;h4 id="redis常见数据结构">Redis常见数据结构
+&lt;/h4>&lt;p>字符串，列表，哈希，集合，有序集合&lt;/p>
+&lt;h4 id="redis-key的删除策略">Redis key的删除策略
+&lt;/h4>&lt;p>Redis 键的删除分为 &lt;strong>过期键删除&lt;/strong> 和 &lt;strong>内存淘汰策略&lt;/strong>&lt;/p>
+&lt;h4 id="如果有一大批redis命令-怎么优化">如果有一大批redis命令 怎么优化
+&lt;/h4>&lt;ul>
+&lt;li>批量操作：使用MGET/MSET&lt;/li>
+&lt;li>管道：使用管道进行打包发送&lt;/li>
+&lt;li>是否使用事务&lt;/li>
+&lt;/ul>
+&lt;h4 id="redis实现分布式锁">redis实现分布式锁
+&lt;/h4>
+&lt;div class="goat svg-container ">
+&lt;svg
+xmlns="http://www.w3.org/2000/svg"
+font-family="Menlo,Lucida Console,monospace"
+viewBox="0 0 360 57"
+>
+&lt;g transform='translate(8,16)'>
+&lt;text text-anchor='middle' x='0' y='4' fill='currentColor' style='font-size:1em'>S&lt;/text>
+&lt;text text-anchor='middle' x='0' y='20' fill='currentColor' style='font-size:1em'>#&lt;/text>
+&lt;text text-anchor='middle' x='0' y='36' fill='currentColor' style='font-size:1em'>D&lt;/text>
+&lt;text text-anchor='middle' x='8' y='4' fill='currentColor' style='font-size:1em'>E&lt;/text>
+&lt;text text-anchor='middle' x='8' y='36' fill='currentColor' style='font-size:1em'>E&lt;/text>
+&lt;text text-anchor='middle' x='16' y='4' fill='currentColor' style='font-size:1em'>T&lt;/text>
+&lt;text text-anchor='middle' x='16' y='20' fill='currentColor' style='font-size:1em'>释&lt;/text>
+&lt;text text-anchor='middle' x='16' y='36' fill='currentColor' style='font-size:1em'>L&lt;/text>
+&lt;text text-anchor='middle' x='24' y='4' fill='currentColor' style='font-size:1em'>N&lt;/text>
+&lt;text text-anchor='middle' x='24' y='20' fill='currentColor' style='font-size:1em'>放&lt;/text>
+&lt;text text-anchor='middle' x='32' y='4' fill='currentColor' style='font-size:1em'>X&lt;/text>
+&lt;text text-anchor='middle' x='32' y='20' fill='currentColor' style='font-size:1em'>锁&lt;/text>
+&lt;text text-anchor='middle' x='32' y='36' fill='currentColor' style='font-size:1em'>l&lt;/text>
+&lt;text text-anchor='middle' x='40' y='20' fill='currentColor' style='font-size:1em'>（&lt;/text>
+&lt;text text-anchor='middle' x='40' y='36' fill='currentColor' style='font-size:1em'>o&lt;/text>
+&lt;text text-anchor='middle' x='48' y='4' fill='currentColor' style='font-size:1em'>l&lt;/text>
+&lt;text text-anchor='middle' x='48' y='20' fill='currentColor' style='font-size:1em'>需&lt;/text>
+&lt;text text-anchor='middle' x='48' y='36' fill='currentColor' style='font-size:1em'>c&lt;/text>
+&lt;text text-anchor='middle' x='56' y='4' fill='currentColor' style='font-size:1em'>o&lt;/text>
+&lt;text text-anchor='middle' x='56' y='20' fill='currentColor' style='font-size:1em'>确&lt;/text>
+&lt;text text-anchor='middle' x='56' y='36' fill='currentColor' style='font-size:1em'>k&lt;/text>
+&lt;text text-anchor='middle' x='64' y='4' fill='currentColor' style='font-size:1em'>c&lt;/text>
+&lt;text text-anchor='middle' x='64' y='20' fill='currentColor' style='font-size:1em'>保&lt;/text>
+&lt;text text-anchor='middle' x='64' y='36' fill='currentColor' style='font-size:1em'>_&lt;/text>
+&lt;text text-anchor='middle' x='72' y='4' fill='currentColor' style='font-size:1em'>k&lt;/text>
+&lt;text text-anchor='middle' x='72' y='20' fill='currentColor' style='font-size:1em'>原&lt;/text>
+&lt;text text-anchor='middle' x='72' y='36' fill='currentColor' style='font-size:1em'>k&lt;/text>
+&lt;text text-anchor='middle' x='80' y='4' fill='currentColor' style='font-size:1em'>_&lt;/text>
+&lt;text text-anchor='middle' x='80' y='20' fill='currentColor' style='font-size:1em'>子&lt;/text>
+&lt;text text-anchor='middle' x='80' y='36' fill='currentColor' style='font-size:1em'>e&lt;/text>
+&lt;text text-anchor='middle' x='88' y='4' fill='currentColor' style='font-size:1em'>k&lt;/text>
+&lt;text text-anchor='middle' x='88' y='20' fill='currentColor' style='font-size:1em'>性&lt;/text>
+&lt;text text-anchor='middle' x='88' y='36' fill='currentColor' style='font-size:1em'>y&lt;/text>
+&lt;text text-anchor='middle' x='96' y='4' fill='currentColor' style='font-size:1em'>e&lt;/text>
+&lt;text text-anchor='middle' x='96' y='20' fill='currentColor' style='font-size:1em'>）&lt;/text>
+&lt;text text-anchor='middle' x='104' y='4' fill='currentColor' style='font-size:1em'>y&lt;/text>
+&lt;text text-anchor='middle' x='120' y='4' fill='currentColor' style='font-size:1em'>u&lt;/text>
+&lt;text text-anchor='middle' x='128' y='4' fill='currentColor' style='font-size:1em'>n&lt;/text>
+&lt;text text-anchor='middle' x='136' y='4' fill='currentColor' style='font-size:1em'>i&lt;/text>
+&lt;text text-anchor='middle' x='144' y='4' fill='currentColor' style='font-size:1em'>q&lt;/text>
+&lt;text text-anchor='middle' x='152' y='4' fill='currentColor' style='font-size:1em'>u&lt;/text>
+&lt;text text-anchor='middle' x='160' y='4' fill='currentColor' style='font-size:1em'>e&lt;/text>
+&lt;text text-anchor='middle' x='168' y='4' fill='currentColor' style='font-size:1em'>_&lt;/text>
+&lt;text text-anchor='middle' x='176' y='4' fill='currentColor' style='font-size:1em'>v&lt;/text>
+&lt;text text-anchor='middle' x='184' y='4' fill='currentColor' style='font-size:1em'>a&lt;/text>
+&lt;text text-anchor='middle' x='192' y='4' fill='currentColor' style='font-size:1em'>l&lt;/text>
+&lt;text text-anchor='middle' x='200' y='4' fill='currentColor' style='font-size:1em'>u&lt;/text>
+&lt;text text-anchor='middle' x='208' y='4' fill='currentColor' style='font-size:1em'>e&lt;/text>
+&lt;text text-anchor='middle' x='232' y='4' fill='currentColor' style='font-size:1em'>#&lt;/text>
+&lt;text text-anchor='middle' x='248' y='4' fill='currentColor' style='font-size:1em'>成&lt;/text>
+&lt;text text-anchor='middle' x='256' y='4' fill='currentColor' style='font-size:1em'>功&lt;/text>
+&lt;text text-anchor='middle' x='264' y='4' fill='currentColor' style='font-size:1em'>返&lt;/text>
+&lt;text text-anchor='middle' x='272' y='4' fill='currentColor' style='font-size:1em'>回&lt;/text>
+&lt;text text-anchor='middle' x='288' y='4' fill='currentColor' style='font-size:1em'>1&lt;/text>
+&lt;text text-anchor='middle' x='296' y='4' fill='currentColor' style='font-size:1em'>，&lt;/text>
+&lt;text text-anchor='middle' x='304' y='4' fill='currentColor' style='font-size:1em'>失&lt;/text>
+&lt;text text-anchor='middle' x='312' y='4' fill='currentColor' style='font-size:1em'>败&lt;/text>
+&lt;text text-anchor='middle' x='320' y='4' fill='currentColor' style='font-size:1em'>返&lt;/text>
+&lt;text text-anchor='middle' x='328' y='4' fill='currentColor' style='font-size:1em'>回&lt;/text>
+&lt;text text-anchor='middle' x='344' y='4' fill='currentColor' style='font-size:1em'>0&lt;/text>
+&lt;/g>
+&lt;/svg>
+&lt;/div>
+&lt;h3 id="mysql">MySQL
+&lt;/h3>&lt;h4 id="mysql的聚集索引和非聚集索引的区别">MySQL的聚集索引和非聚集索引的区别
+&lt;/h4>&lt;p>聚集索引通过主键，非聚集索引是通过其它值&lt;/p>
+&lt;h4 id="如何分析mysql执行计划">如何分析MySQL执行计划
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-sql" data-lang="sql">&lt;span class="line">&lt;span class="cl">&lt;span class="k">EXPLAIN&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">SELECT&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">FROM&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">orders&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="k">WHERE&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="n">user_id&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="mi">100&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="mysql怎么实现乐观锁和悲观锁">MySQL怎么实现乐观锁和悲观锁
+&lt;/h4>&lt;p>乐观锁假设冲突不常发生，所以在读取数据时不加锁，但在更新时检查数据是否被其他事务修改过。通常使用版本号或时间戳来实现。而悲观锁则相反，它假设冲突会发生，所以在读取数据时就加锁，防止其他事务修改，直到当前事务结束。&lt;/p>
+&lt;h3 id="计网操作系统等">计网操作系统等
+&lt;/h3>&lt;h4 id="osi-七层模型">&lt;strong>、OSI 七层模型&lt;/strong>
+&lt;/h4>&lt;p>OSI（Open Systems Interconnection）模型是理论上的网络通信分层框架，分为 &lt;strong>7 层&lt;/strong>，每层负责特定功能：&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">&lt;strong>层级&lt;/strong>&lt;/th>
+&lt;th style="text-align: center">&lt;strong>核心功能&lt;/strong>&lt;/th>
+&lt;th style="text-align: center">&lt;strong>典型协议/设备&lt;/strong>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>7. 应用层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">直接为用户提供服务（如 Web 请求、邮件收发）&lt;/td>
+&lt;td style="text-align: center">HTTP, FTP, SMTP, DNS&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>6. 表示层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">数据格式转换（如加密、压缩、编码）&lt;/td>
+&lt;td style="text-align: center">SSL/TLS, JPEG, Base64&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>5. 会话层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">管理会话（如建立、维护、终止连接）&lt;/td>
+&lt;td style="text-align: center">RPC, NetBIOS&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>4. 传输层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">提供端到端通信（可靠性、流量控制）&lt;/td>
+&lt;td style="text-align: center">TCP, UDP&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>3. 网络层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">数据包路由（IP 寻址、转发）&lt;/td>
+&lt;td style="text-align: center">IP, ICMP, 路由器&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>2. 数据链路层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">可靠传输帧（MAC 地址寻址、错误检测）&lt;/td>
+&lt;td style="text-align: center">Ethernet, Wi-Fi, ARP, 交换机&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>1. 物理层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">比特流传输（物理介质、信号传输）&lt;/td>
+&lt;td style="text-align: center">光纤, 双绞线, 网卡&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;hr>
+&lt;h4 id="二tcpip-模型">&lt;strong>二、TCP/IP 模型&lt;/strong>
+&lt;/h4>&lt;p>TCP/IP 是实际广泛应用的简化四层模型，与 OSI 的对应关系如下：&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: center">&lt;strong>层级&lt;/strong>&lt;/th>
+&lt;th style="text-align: center">&lt;strong>对应 OSI 层级&lt;/strong>&lt;/th>
+&lt;th style="text-align: center">&lt;strong>核心协议&lt;/strong>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>应用层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">OSI 5-7 层&lt;/td>
+&lt;td style="text-align: center">HTTP, FTP, DNS, SMTP&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>传输层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">OSI 4 层&lt;/td>
+&lt;td style="text-align: center">TCP, UDP&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>网络层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">OSI 3 层&lt;/td>
+&lt;td style="text-align: center">IP, ICMP, OSPF, BGP&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: center">&lt;strong>网络接口层&lt;/strong>&lt;/td>
+&lt;td style="text-align: center">OSI 1-2 层&lt;/td>
+&lt;td style="text-align: center">Ethernet, Wi-Fi, PPP, 交换机, 路由器&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;hr>
+&lt;h3 id="三核心协议详解">&lt;strong>三、核心协议详解&lt;/strong>
+&lt;/h3>&lt;h4 id="1-tcptransmission-control-protocol">&lt;strong>1. TCP（Transmission Control Protocol）&lt;/strong>
+&lt;/h4>&lt;ul>
+&lt;li>
+&lt;p>&lt;strong>特性&lt;/strong>：面向连接、可靠传输、流量控制、拥塞控制。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>三次握手（建立连接）&lt;/p>
+&lt;p>复制&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">客户端 → SYN → 服务器
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">服务器 → SYN-ACK → 客户端
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">客户端 → ACK → 服务器
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>四次挥手（终止连接)&lt;/p>
+&lt;p>复制&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-text" data-lang="text">&lt;span class="line">&lt;span class="cl">客户端 → FIN → 服务器
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">服务器 → ACK → 客户端
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">服务器 → FIN → 客户端
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">客户端 → ACK → 服务器
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>应用场景&lt;/strong>：文件传输（FTP）、网页浏览（HTTP）、邮件（SMTP）。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h4 id="2-udpuser-datagram-protocol">&lt;strong>2. UDP（User Datagram Protocol）&lt;/strong>
+&lt;/h4>&lt;ul>
+&lt;li>&lt;strong>特性&lt;/strong>：无连接、不可靠传输、低延迟、高效。&lt;/li>
+&lt;li>&lt;strong>应用场景&lt;/strong>：实时音视频（Zoom）、DNS 查询、在线游戏。&lt;/li>
+&lt;/ul>
+&lt;h4 id="3-httphttps">&lt;strong>3. HTTP/HTTPS&lt;/strong>
+&lt;/h4>&lt;p>HTTP 协议&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>&lt;strong>无状态&lt;/strong>：每次请求独立（通过 Cookie/JSESSIONID 维持状态）。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>方法&lt;/strong>：GET（获取数据）、POST（提交数据）、PUT（更新）、DELETE（删除）。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>状态码&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>200 OK&lt;/code>：成功&lt;/li>
+&lt;li>&lt;code>301 Moved Permanently&lt;/code>：永久重定向&lt;/li>
+&lt;li>&lt;code>404 Not Found&lt;/code>：资源不存在&lt;/li>
+&lt;li>&lt;code>500 Internal Server Error&lt;/code>：服务器错误&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>HTTPS&lt;/strong>：HTTP + SSL/TLS 加密，通过证书（CA 签发）实现双向认证。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;h4 id="4-ip-协议">&lt;strong>4. IP 协议&lt;/strong>
+&lt;/h4>&lt;ul>
+&lt;li>&lt;strong>IPv4&lt;/strong>：32 位地址（如 &lt;code>192.168.1.1&lt;/code>），子网掩码划分网络。&lt;/li>
+&lt;li>&lt;strong>IPv6&lt;/strong>：128 位地址（如 &lt;code>2001:0db8::1&lt;/code>），解决地址耗尽问题。&lt;/li>
+&lt;li>&lt;strong>ICMP&lt;/strong>：网络诊断工具（如 &lt;code>ping&lt;/code> 使用 ICMP Echo Request/Reply）。&lt;/li>
+&lt;/ul></description></item><item><title>Redis缓存穿透、击穿、雪崩</title><link>https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/</link><pubDate>Sun, 06 Apr 2025 23:25:36 +0800</pubDate><guid>https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/</guid><description>&lt;h3 id="redis">Redis
+&lt;/h3>&lt;p>设计&lt;a class="link" href="http://mp.weixin.qq.com/s?__biz=MzU5NTAzNjM0Mw==&amp;amp;mid=2247485849&amp;amp;idx=2&amp;amp;sn=a85a71485fc64bf34e5f1e4971dc2469&amp;amp;chksm=fe795841c90ed157f347ef6b0bccdb7aa5e49cade80eb9a5be96329cd8f813d06e4b335cfdac&amp;amp;scene=21#wechat_redirect" target="_blank" rel="noopener"
+>一个缓存系统&lt;/a>，不得不要考虑的问题就是：缓存穿透、&lt;a class="link" href="https://so.csdn.net/so/search?q=%e7%bc%93%e5%ad%98%e5%87%bb%e7%a9%bf&amp;amp;spm=1001.2101.3001.7020" target="_blank" rel="noopener"
+>缓存击穿&lt;/a>与失效时的雪崩效应。&lt;/p>
+&lt;p>前台请求，后台先从缓存中取数据，取到直接返回结果，取不到时从数据库中取，数据库取到更新缓存，并返回结果，数据库也没取到，那直接返回空结果。&lt;/p>
+&lt;p>&lt;img src="https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/2306e5245ce0e0eae6d4222497145422.png"
+width="447"
+height="308"
+srcset="https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/2306e5245ce0e0eae6d4222497145422_hu_e6d3703a0e121838.png 480w, https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/2306e5245ce0e0eae6d4222497145422_hu_1a5b40c9068d4bdf.png 1024w"
+loading="lazy"
+alt="img"
+class="gallery-image"
+data-flex-grow="145"
+data-flex-basis="348px"
+>&lt;/p>
+&lt;h4 id="缓存穿透">&lt;strong>缓存穿透&lt;/strong>
+&lt;/h4>&lt;p>&lt;strong>描述：&lt;/strong>&lt;/p>
+&lt;p>​ 缓存穿透是指&lt;strong>缓存和数据库中都没有的数据&lt;/strong>，而用户不断发起请求。由于缓存是不命中时被动写的，并且出于容错考虑，如果从存储层查不到数据则不写入缓存，这将导致这个不存在的数据每次请求都要到存储层去查询，失去了缓存的意义。&lt;/p>
+&lt;p>在流量大时，可能DB就挂掉了，要是有人利用不存在的key频繁攻击我们的应用，这就是漏洞。&lt;/p>
+&lt;p>如发起为id为“-1”的数据或id为特别大不存在的数据。这时的用户很可能是攻击者，攻击会导致数据库压力过大。&lt;/p>
+&lt;p>&lt;strong>解决方案：&lt;/strong>&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;strong>接口层增加校验&lt;/strong>，如用户鉴权校验，id做基础校验，id&amp;lt;=0的直接拦截；&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>从缓存取不到的数据，在数据库中也没有取到，这时也可以将key-value对写为&lt;strong>key-null&lt;/strong>，&lt;strong>缓存有效时间可以设置短点&lt;/strong>，如30秒（设置太长会导致正常情况也没法使用）。这样可以防止攻击用户反复用同一个id暴力攻击&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;h4 id="缓存击穿">&lt;strong>缓存击穿&lt;/strong>
+&lt;/h4>&lt;p>&lt;strong>描述：&lt;/strong>&lt;/p>
+&lt;p>&lt;em>&lt;strong>*缓存击穿是指缓存中没有但数据库中有的数据（一般是缓存时间到期）*&lt;/strong>&lt;/em>，这时由于并发用户特别多，同时读缓存没读到数据，又同时去数据库去取数据，引起数据库压力瞬间增大，造成过大压力。&lt;/p>
+&lt;p>&lt;strong>解决方案：&lt;/strong>&lt;/p>
+&lt;p>&lt;strong>1、设置热点数据永远不过期。&lt;/strong>&lt;/p>
+&lt;p>**2、接口限流与熔断，降级。**重要的接口一定要做好限流策略，防止用户恶意刷接口，同时要降级准备，当接口中的某些 服务 不可用时候，进行熔断，失败快速返回机制。&lt;/p>
+&lt;p>&lt;strong>3、布隆过滤器&lt;/strong>**。**bloomfilter就类似于一个hash set，用于快速判某个元素是否存在于集合中，其典型的应用场景就是快速判断一个key是否存在于某容器，不存在就直接返回。布隆过滤器的关键就在于hash算法和容器大小，&lt;/p>
+&lt;p>&lt;strong>4、加互斥锁&lt;/strong>，互斥锁参考代码如下：&lt;/p>
+&lt;p>&lt;img src="https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/bc102cffc045560db428049ff48e206e.png"
+width="762"
+height="571"
+srcset="https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/bc102cffc045560db428049ff48e206e_hu_ccb83b996183e970.png 480w, https://yuxiay.github.io/p/redis%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E5%87%BB%E7%A9%BF%E9%9B%AA%E5%B4%A9/bc102cffc045560db428049ff48e206e_hu_d124f1233a018111.png 1024w"
+loading="lazy"
+alt="img"
+class="gallery-image"
+data-flex-grow="133"
+data-flex-basis="320px"
+>&lt;/p>
+&lt;p>说明：&lt;/p>
+&lt;p>​ 1）缓存中有数据，直接走上述代码13行后就返回结果了&lt;/p>
+&lt;p>​ 2）缓存中没有数据，第1个进入的线程，获取锁并从数据库去取数据，没释放锁之前，其他并行进入的线程会等待100ms，再重新去缓存取数据。这样就防止都去数据库重复取数据，重复往缓存中更新数据情况出现。&lt;/p>
+&lt;p>​ 3）当然这是简化处理，理论上如果能根据key值加锁就更好了，就是线程A从数据库取key1的数据并不妨碍线程B取key2的数据，上面代码明显做不到这点。&lt;/p>
+&lt;h4 id="缓存雪崩">&lt;strong>缓存雪崩&lt;/strong>
+&lt;/h4>&lt;p>&lt;strong>描述：&lt;/strong>&lt;/p>
+&lt;p>&lt;a class="link" href="https://so.csdn.net/so/search?q=%e7%bc%93%e5%ad%98%e9%9b%aa%e5%b4%a9&amp;amp;spm=1001.2101.3001.7020" target="_blank" rel="noopener"
+>缓存雪崩&lt;/a>是指缓存中数据大批量到过期时间，而查询数据量巨大，引起数据库压力过大甚至down机。和缓存击穿不同的是， 缓存击穿指并发查同一条数据，缓存雪崩是不同数据都过期了，很多数据都查不到从而查数据库。&lt;/p>
+&lt;p>&lt;strong>解决方案&lt;/strong>：&lt;/p>
+&lt;ol>
+&lt;li>缓存数据的过期时间设置随机，防止同一时间大量数据过期现象发生。&lt;/li>
+&lt;li>如果缓存数据库是分布式部署，将热点数据均匀分布在不同搞得缓存数据库中。&lt;/li>
+&lt;li>设置热点数据永远不过期。&lt;/li>
+&lt;/ol></description></item><item><title>go内存逃逸</title><link>https://yuxiay.github.io/p/go%E5%86%85%E5%AD%98%E9%80%83%E9%80%B8/</link><pubDate>Sun, 23 Mar 2025 23:25:36 +0800</pubDate><guid>https://yuxiay.github.io/p/go%E5%86%85%E5%AD%98%E9%80%83%E9%80%B8/</guid><description>&lt;h2 id="go内存分配与逃逸分析">go内存分配与逃逸分析
+&lt;/h2>&lt;p>内存管理主要包括俩个动作：分配与释放&lt;/p>
+&lt;p>逃逸分析是服务与内存分配的&lt;/p>
+&lt;p>而内存的释放由GC负责&lt;/p>
+&lt;h4 id="栈">栈
+&lt;/h4>&lt;p>在go语言中，&lt;strong>栈的内存是由编译器自动进行分配和释放的&lt;/strong>，栈区往往存储着函数参数，局部变量和调用函数帧，&lt;strong>它们随着函数的创建而分配，随着函数的退出而销毁&lt;/strong>&lt;/p>
+&lt;p>go应用程序运行时，每个goroutine都维护着一个自己的栈区，这个栈区只能自己使用而不能被其它goroutine使用。栈是调用栈(call stack)的简称。&lt;strong>一个栈通常又包含了许多栈帧，它描述的是函数之间的调用关系&lt;/strong>&lt;/p>
+&lt;h4 id="堆">堆
+&lt;/h4>&lt;p>&lt;strong>与栈不同的是，堆区的内存一般是由编译器和工程师自己共同进行分配管理的，交给Runtime GC来释放。在堆上分配时，必须找到一块足够大的内存来存放新的变量数据。后续释放时，垃圾回收期扫描堆空间寻找不再被使用的对象&lt;/strong>&lt;/p>
+&lt;h4 id="逃逸分析">逃逸分析
+&lt;/h4>&lt;p>相比于把内存分配到堆上，分配到栈中优势更加明显&lt;/p>
+&lt;p>Go编译器会尽可能将变量分配到栈上&lt;/p>
+&lt;p>但是在函数返回后无法证明变量未被引用，则该变量将被分配到堆上，该变量不随函数栈的回收而回收，以此来避免悬挂指针的问题&lt;/p>
+&lt;p>如果变量占用内存大也会放入堆上&lt;/p>
+&lt;p>&lt;strong>Go是如何确定内存是分配到栈上还是堆上呢？&lt;/strong>&lt;/p>
+&lt;p>答案就是：&lt;strong>内存逃逸&lt;/strong>&lt;/p>
+&lt;p>编译器通过逃逸分析技术来选择堆或者栈，逃逸分析的基本思想如下：&lt;strong>检查变量的生命周期是否完全可知的，如果通过检查，则在栈上分配，否则就是所谓逃逸，必须在堆上进行分配&lt;/strong>&lt;/p>
+&lt;h4 id="逃逸分析原则">逃逸分析原则
+&lt;/h4>&lt;p>Go语言虽然没有明确说明逃逸分析原则，但有以下几点准则是可以参考的：&lt;/p>
+&lt;ul>
+&lt;li>不同于JAVA JVM的运行时逃逸分析，Go的逃逸分析是在编译期完成的：编译期无法确定的参数类型必定放到堆中&lt;/li>
+&lt;li>如果变量在函数外部存在引用，则必定放在堆中&lt;/li>
+&lt;li>如果变量占用内存较大时，则优先放到堆中&lt;/li>
+&lt;li>如果变量在函数外部没有引用，则优先放到栈中&lt;/li>
+&lt;li>变量大小无法确定时也会发生内存逃逸&lt;/li>
+&lt;/ul></description></item><item><title>go语言垃圾回收</title><link>https://yuxiay.github.io/p/go%E8%AF%AD%E8%A8%80%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/</link><pubDate>Sun, 23 Mar 2025 23:25:36 +0800</pubDate><guid>https://yuxiay.github.io/p/go%E8%AF%AD%E8%A8%80%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/</guid><description>&lt;h3 id="go语言垃圾回收">Go语言——垃圾回收
+&lt;/h3>&lt;p>屏障：
+1.插入屏障：在A对象引用B对象的时候，B对象被标记为灰色（满足强三色不变式，黑色引用的白色对象会被强制转换为灰色）。只有堆上的对象触发插入屏障，栈上的对象不触发插入屏障。在准备回收白色前，重新遍历扫描一次栈空间。此时加STW暂停保护栈，防止外界干扰。&lt;/p>
+&lt;p>不足：结束时需要使用STW来重新扫描栈&lt;/p>
+&lt;p>2.删除屏障：被删除的对象，如果自身为灰色或者白色，那么被标记为灰色（满足弱三色不变式）。&lt;/p>
+&lt;p>删除屏障的不足：回收精度低，一个对象即使被删除了最后一个指向它的指针也依旧可以活过这一轮，在下一轮GC中被清理掉。&lt;/p>
+&lt;p>Go V1.8的三色标记法+混合写屏障机制
+具体操作：
+1.GC开始将栈上的可达对象全部扫描并标记为黑色（之后不再进行第二次重复扫描，无需STW）
+2.GC期间，任何在栈上创建的新对象，均为黑色
+3.堆上被删除对象标记为灰色
+4.堆上被添加的对象标记为灰色
+满足：变形的弱三色不变式（结合了插入、删除写屏障的优点）&lt;/p>
+&lt;p>对于堆上的对象，采用三色标记法+写屏障保护&lt;/p>
+&lt;h4 id="gc垃圾收集的多个阶段">GC垃圾收集的多个阶段：
+&lt;/h4>&lt;p>1.标记准备阶段；&lt;/p>
+&lt;p>启动后台标记任务
+暂停程序（STW），所有的处理器在这时会进入安全点（Safe point）；
+如果当前垃圾收集循环是强制触发的，我们还需要处理还未被清理的内存管理单元；
+将根对象入队
+开启写屏障
+2.标记阶段；&lt;/p>
+&lt;p>恢复用户协程
+使用三色标记法开始标记，此时用户协程和标记协程并发执行
+3.标记终止阶段；&lt;/p>
+&lt;p>暂停用户协程
+计算下一次触发GC时需要达到的堆目标
+唤醒后台清扫协程
+4.清理阶段；&lt;/p>
+&lt;p>关闭写屏障
+恢复用户协程
+异步清理回收&lt;/p>
+&lt;h4 id="什么是根对象">什么是根对象？
+&lt;/h4>&lt;p>根对象（root object）是指那些能够从全局可达的地方访问到的对象。垃圾回收器会从根对象开始，通过遍历根对象的引用关系，逐步追踪并标记所有可达的对象。任何未被标记的对象都会被认为是垃圾，最终被回收释放。&lt;/p>
+&lt;p>1.全局变量：全局变量可以被程序中的任何位置引用到，因此是根对象。
+2.当前正在执行的函数的局部变量：当一个函数正在执行时，其局部变量可以被当前函数中的代码访问到，因此也是根对象。
+3.当前正在执行的 goroutine 的栈中的变量：goroutine 是 Go语言并发编程中的轻量级线程，每个 goroutine 都有一块独立的栈空间，其中的变量可以被当前 goroutine 访问到，也是根对象。
+4.其他和运行时系统相关的数据结构和变量。&lt;/p>
+&lt;h4 id="三色标记法的缺点">三色标记法的缺点：
+&lt;/h4>&lt;p>1.暂停时间：在进行垃圾回收时，必须停止程序执行，这会导致应用程序暂停。引入写屏障保护可以减少暂停时间，
+但仍然可能导致性能下降。
+2.内存开销：三色标记法需要为每个对象维护额外的状态信息，以记录其标记状态。这会增加内存开销，并可能对内
+存资源造成负担。
+3.频繁的垃圾回收：三色标记法需要频繁地迭代标记和清除对象，如果要回收的垃圾对象很多，可能会导致回收过程
+变得非常耗时。
+4.碎片化：垃圾回收过程中，如果频繁进行对象的移动和重新分配内存，可能会导致内存碎片化，降低内存的利用
+率。&lt;/p>
+&lt;h4 id="gc的触发条件">GC的触发条件
+&lt;/h4>&lt;p>1.主动触发(手动触发)，通过调用 runtime.GC 来触发GC，此调用阻塞式地等待当前GC运行完毕。
+2.被动触发，分为两种方式：&lt;/p>
+&lt;p>2.1.使用步调（Pacing）算法，其核心思想是控制内存增长的比例,每次内存分配时检查当前内存分配量是否已达到阈值（环境变量GOGC）：默认100%，即当内存扩大一倍时启用GC。
+2.2.使用系统监控，当超过两分钟没有产生任何GC时，强制触发 GC。&lt;/p>
+&lt;h4 id="gc调优">GC调优
+&lt;/h4>&lt;p>1.控制内存分配的速度，限制Goroutine的数量，提高赋值器mutator的CPU利用率（降低GC的CPU利用率）
+2.少量使用+连接string
+3.slice提前分配足够的内存来降低扩容带来的拷贝
+4.避免map key对象过多，导致扫描时间增加
+5.变量复用，减少对象分配，例如使用sync.Pool来复用需要频繁创建临时对象、使用全局变量等
+6.增大GOGC的值，降低GC的运行频率&lt;/p></description></item></channel></rss>
