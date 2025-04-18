@@ -32,7 +32,7 @@ cli, err := clientv3.New(clientv3.Config{
 
 ### 服务注册和服务发现的具体实现
 
-基本逻辑：服务注册者向etcdzhuce服务，客户端查询监听etcd，从而客户端访问服务
+基本逻辑：服务注册者向etcd注册服务，客户端查询监听etcd，从而客户端访问服务
 
 服务端：
 

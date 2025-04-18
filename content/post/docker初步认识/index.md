@@ -1,4 +1,5 @@
 ---
+
 title: "docker初步认识"
 description: 
 date: 2025-04-10T19:04:06+08:00
@@ -132,13 +133,13 @@ curl http://mynginx:80
 
 ## docker应用实现
 
-#### 如何启动一个容器？
+### 如何启动一个容器？
 
 - 网络相关。考虑端口，是否需要暴露端口让外界访问，加入自定义网络
 - 存储相关。容器是否有什么配置文件或者数据需要挂载在外面方便修改或者防止丢失
 - 环境变量。看官方文档是否需要添加环境变量
 
-#### Redis主从集群
+### Redis主从集群
 
 主机实现：
 
@@ -244,3 +245,59 @@ networks:
 ## dockerfile文件
 
 ![1744722324414](1744722324414.png)
+
+```dockerfile
+FROM alpine
+WORKDIR /Initial
+COPY ./target/project-user .
+COPY ./config/config-docker.yaml .
+RUN  mkdir config && mv config-docker.yaml config/config.yaml
+EXPOSE 8080 8881
+ENTRYPOINT ["./project-user"]
+```
+
+```bat
+docker build -f dockerfile -t project-user:latest
+
+```
+
+通过下面文件将go项目编译成exe文件
+
+```bat
+chcp 65001
+@echo off
+:loop
+@echo off&amp;color 0A
+cls
+echo,
+echo 请选择要编译的系统环境：
+echo,
+echo 1. Windows_amd64
+echo 2. linux_amd64
+
+set/p action=请选择:
+if %action% == 1 goto build_Windows_amd64
+if %action% == 2 goto build_linux_amd64
+
+:build_Windows_amd64
+echo 编译Windows版本64位
+SET CGO_ENABLED=0
+SET GOOS=windows
+SET GOARCH=amd64
+go build -o project-user/target/project-user.exe project-user/main.go
+go build -o project-api/target/project-api.exe project-api/main.go
+:build_linux_amd64
+echo 编译Linux版本64位
+SET CGO_ENABLED=0
+SET GOOS=linux
+SET GOARCH=amd64
+go build -o project-user/target/project-user project-user/main.go
+go build -o project-api/target/project-api project-api/main.go
+```
+
+
+
+```bat
+docker image inspect nginx
+```
+

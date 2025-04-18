@@ -241,3 +241,6 @@ func JWTAuthMiddleware() func(c *gin.Context) {
 
 ```
 
+![image-20250417152557109](image-20250417152557109.png)
+
+![image-20250417152957655](image-20250417152957655.png)
