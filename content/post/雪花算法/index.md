@@ -1,7 +1,7 @@
 ---
 title: "雪花算法"
 description: 
-date: 2024-09-02T21:14:10+08:00
+date: 2024-10-02T21:14:10+08:00
 image: 
 math: 
 license: 
