@@ -221,7 +221,7 @@ explain select a1,a2,a3,a4 from test03 where a1=1 and a2=2 and a4=4 order by a3;
     - 复合索引，不要跨列使用，避免using filesort
     - 保证全部的排序字段排序一致性（都是升序或排序）
 
-#### SQL排序--慢查询日志
+#### SQL排查--慢查询日志
 
 MySQL提供的一种日志记录，用于记录MySQL中相应时间超过阈值的SQL语句（long_query_time,默认10秒）
 
@@ -242,6 +242,53 @@ service mysql restart
 [mysqld]
 slow_query_log=1
 slow_query_log_file=/var/lib/mysql/localhost-slow.log
+
+慢查询阈值：
+show variables like '%long_query_time%';
+临时设置阈值：
+set global long_query_time = 5;		--设置完毕后不会立刻生效，需要重新登陆后才能生效
+永久设置阈值：
+/etc/my.cnf 中追加配置
+[mysqld]
+long_query_time=3
+```
+
+
+
+```
+查询超过阈值的SQL：
+show global status like '%slow_queries';
+```
+
+慢查询的SQL被记录在日志中，因此可以通过日志来查看具体的慢SQL
+查看上述的日志文件即可
+
+通过mysqldumpslow工具查看慢SQL,可以通过一些过滤条件 快速查找需要定位的慢SQL
+
+```
+mysqldumpslow --help
+s: 排序方式
+r: 逆序
+l: 锁定时间
+g: 正则匹配模式
+```
+
+获取返回记录最多的三个SQL
+
+```
+mysqldumpslow -s r -t 3 /var/lib/mysql/localhost-slow.log
+```
+
+获取访问次数最多的3个SQL
+
+```
+mysqldumpslow -s c -t 3 /var/lib/mysql/localhost-slow.log
+```
+
+按照时间排序，前10条包含`left join`查询语句的SQL
+
+```
+mysqldumpslow -s t -t 10 -g "left join" /var/lib/mysql/localhost-slow.log
 ```
 
 
