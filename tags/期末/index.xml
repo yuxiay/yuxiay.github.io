@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>期末 on yuxiay的博客</title><link>https://yuxiay.github.io/tags/%E6%9C%9F%E6%9C%AB/</link><description>Recent content in 期末 on yuxiay的博客</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><lastBuildDate>Tue, 03 Jun 2025 20:04:06 +0800</lastBuildDate><atom:link href="https://yuxiay.github.io/tags/%E6%9C%9F%E6%9C%AB/index.xml" rel="self" type="application/rss+xml"/><item><title>机械学习期末重点</title><link>https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/</link><pubDate>Tue, 03 Jun 2025 20:04:06 +0800</pubDate><guid>https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/</guid><description>&lt;p>1、最特殊的假设&lt;/p>
+&lt;p>&amp;ldquo;环境稳定性&amp;rdquo;——存储的知识必须适用于未来情况&lt;/p>
+&lt;p>2、增强学习&lt;/p>
+&lt;p>增强学习：机器学习程序评估策略的好坏，并从以往的动作序列中学习，以便产生最优策略。&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;/th>
+&lt;th>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;/td>
+&lt;td>&lt;img src="https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image002.jpg"
+width="634"
+height="333"
+srcset="https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image002_hu_2e4305afb4819edc.jpg 480w, https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image002_hu_c4c5e321d04a0e8f.jpg 1024w"
+loading="lazy"
+alt="img"
+class="gallery-image"
+data-flex-grow="190"
+data-flex-basis="456px"
+>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>举例：游戏，机器人导航等&lt;/p>
+&lt;p>3、最好的泛化&lt;/p>
+&lt;p>“最好的泛化”并非单一技术或方法，而是指模型在未见数据上保持高精度与强鲁棒性的能力，其核心在于平衡模型对训练数据的拟合能力与对新数据的适应能力。&lt;/p>
+&lt;p>4、样本的协方差矩阵计算&lt;/p>
+&lt;p>5、不同的机器学习方法之间的区别&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>&lt;/th>
+&lt;th>&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;/td>
+&lt;td>&lt;img src="https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image004.jpg"
+width="831"
+height="264"
+srcset="https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image004_hu_eb3574b8ea580907.jpg 480w, https://yuxiay.github.io/p/%E6%9C%BA%E6%A2%B0%E5%AD%A6%E4%B9%A0%E6%9C%9F%E6%9C%AB%E9%87%8D%E7%82%B9/clip_image004_hu_c5d9523a2a01facb.jpg 1024w"
+loading="lazy"
+alt="img"
+class="gallery-image"
+data-flex-grow="314"
+data-flex-basis="755px"
+>&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>6、PCA中每一个主成分的确定&lt;/p>
+&lt;p>7、每一种降维方法的特点&lt;/p>
+&lt;p>8、使用欧式距离的假设&lt;/p>
+&lt;p>9、对于不能学习模型的算法，如果有新的数据，需要重新运行算法，如没有替代的解决方法&lt;/p>
+&lt;p>10、k 均值算法与期望极大化算法的联系与区别&lt;/p>
+&lt;p>11、把均方误改写成用偏倚和方差表示&lt;/p>
+&lt;p>12、支持度和置信度的计算&lt;/p>
+&lt;p>13、给出样本数据，用朴素贝叶斯方法分类&lt;/p></description></item></channel></rss>
