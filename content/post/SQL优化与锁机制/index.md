@@ -31,7 +31,7 @@ explain内容分析：
 
 ### explain结构分析
 
-#### id
+**id**
 
 - id值越大，先执行
 
@@ -39,7 +39,7 @@ explain内容分析：
 
 - 影响行数根据影响行数从小到大
 
-#### select_type
+**select_type**
 
 ![image-20250416185251454](image-20250416185251454.png)
 
@@ -59,7 +59,7 @@ explain内容分析：
 
   - 在from子查询中，如果有table union table2，则table1就是derived
 
-#### type
+**type**
 
 索引类型
 
@@ -78,19 +78,19 @@ system>const>eq_ref>ref>range>index>all
 - index：查询全部索引中的数据
 - all：查询全部表中的数据
 
-#### possible_keys
+**possible_keys**
 
 可能用到的索引，是一种预测，不准
 
 如果是NULL则无索引
 
-#### key
+**key**
 
 实际用到的索引
 
 如果是NULL则无索引
 
-#### key_lens
+**key_lens**
 
 索引的长度
 
@@ -100,7 +100,7 @@ ut8默认一个字符3个字节
 
 如果可以为空则+1，如果是varchar再+2
 
-#### ref
+**ref**
 
 注意：与tepe中ref区分
 
@@ -113,7 +113,7 @@ explain select ... where a.c = b.x;
 
 ![image-20250416190552617](image-20250416190552617.png)
 
-#### rows
+**rows**
 
 被索引优化查询的数据个数(实际通过索引查询到的数据个数)
 
@@ -123,7 +123,7 @@ select * from course c.teacher t where c.tid = t.tid
 
 ![image-20250416190817544](image-20250416190817544.png)
 
-#### Extra
+**Extra**
 
 - using filesort:性能消耗比较大；需要“额外”一次排序（查询）常见于order by语句
 
@@ -159,7 +159,7 @@ explain select * from test02 where a1 = '' order by a3;  --using filesort
 
 ### 优化实例
 
-#### 第一个简单例子
+**第一个简单例子**
 
 ```
 create table test03(
@@ -184,19 +184,19 @@ explain select a1,a2,a3,a4 from test03 where a1=1 and a2=2 and a4=4 order by a3;
 
 - where和order by拼起来，不要跨列使用
 
-#### 单表优化
+**单表优化**
 
 1. 加索引 根据SQL解析顺便，来调整索引顺序，先解析where后解析select 索引一旦进行升级优化，需要将之前废弃索引删掉
 1. 最佳左前缀，保持索引的定义和使用的顺序一致性
 1. 将包含in的查询放到最后
 
-#### 多表优化
+**多表优化**
 
 - 当编写 `on t.cid=c.tid` 时，将数据量小的表放左边（假设t表小）
 - 索引往哪个表加？--小表驱动大表  --索引建立在经常使用的字段上
 - 一般情况，对于左外连接给左表加索引，对于右外连接给右表加索引
 
-#### 避免索引失效的一些原则
+**避免索引失效的一些原则**
 
 - 复合索引，不要跨列或无序使用（最佳左前缀）
 - 复合索引，尽量使用全索引匹配
@@ -208,7 +208,7 @@ explain select a1,a2,a3,a4 from test03 where a1=1 and a2=2 and a4=4 order by a3;
 - 尽量不要使用类型转换（显示，隐式），否则都会使索引失效
 - 尽量不要使用or，否则索引失效
 
-#### 一些其它优化方法
+**一些其它优化方法**
 
 - exist和in
   - 如果主查询的数据集大，则使用In
@@ -221,7 +221,7 @@ explain select a1,a2,a3,a4 from test03 where a1=1 and a2=2 and a4=4 order by a3;
     - 复合索引，不要跨列使用，避免using filesort
     - 保证全部的排序字段排序一致性（都是升序或排序）
 
-#### SQL排查--慢查询日志
+**SQL排查--慢查询日志**
 
 MySQL提供的一种日志记录，用于记录MySQL中相应时间超过阈值的SQL语句（long_query_time,默认10秒）
 
@@ -291,6 +291,20 @@ mysqldumpslow -s c -t 3 /var/lib/mysql/localhost-slow.log
 mysqldumpslow -s t -t 10 -g "left join" /var/lib/mysql/localhost-slow.log
 ```
 
+### profiles分析海量数据
 
+`show profiles` --默认关闭
+
+`show variables like '%profiling%';`
+
+`set profiling = on;`
+
+`show profiles;`会记录所有 `profiling`打开之后的 全部查询语句所花费的时间。缺点：不够精确
+
+--- 精确分析：sql诊断
+
+`show profile all for query Query_Id`上一步查询到的Query_Id
+
+`show profile cpu blockio for query Query_Id`
 
 ​	
