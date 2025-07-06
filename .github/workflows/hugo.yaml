@@ -33,5 +33,5 @@ jobs:
           personal_token: ${{ secrets.YUXIAYBLOG }}
           external_repository: yuxiay/yuxiay.github.io # Set the target repository
           publish_dir: ./public
-          publish_branch: master # Set the target branch
+          publish_branch: main # Set the target branch
           cname: xxx.com # If you have a custom domain
