@@ -1,5 +1,5 @@
 ---
-title: "MySQL读写分离"
+title: "MySQL读写分离主从复制"
 description: 
 date: 2025-01-02T16:09:16+08:00
 image: 
