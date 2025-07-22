@@ -723,7 +723,7 @@ Next-Key Lock 称为临键锁，是`Record Lock + Gap Lock`的组合，锁定一
 
 ### MySQL是怎么加锁的？
 
-**什么SQL语句会加行级锁**
+#### 什么SQL语句会加行级锁
 
 普通的select语句是不会对记录加锁的(除了串行化隔离级别)，因为它属于快照读，是通过MVCC(多版本并发控制)实现的
 
@@ -752,7 +752,7 @@ delete from table where id = 1
 insert ... from
 ```
 
-**MySQL是怎么加行级锁的？**
+#### MySQL是怎么加行级锁的？
 
 加锁的对象是索引，加锁的基本单位是`next-key lock`，它是由记录锁和间隙锁组合而成的，`next-key lock`是前开后闭区间，而间隙锁是前开后开区间
 
