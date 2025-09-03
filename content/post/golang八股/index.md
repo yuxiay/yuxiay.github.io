@@ -1,5 +1,5 @@
 ---
-title: "golang八股整理"
+title: "GMP模型"
 description: 
 date: 2025-01-03T23:25:36+08:00
 image: 

@@ -7,7 +7,7 @@ math:
 license: 
 hidden: false
 comments: true
-draft: false
+draft: true
 tags:   
     - 数据结构与算法
 categories:
